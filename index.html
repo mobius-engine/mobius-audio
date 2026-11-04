@@ -524,6 +524,7 @@ button,input{font:inherit;color:inherit}
         <input id="f-email" type="email" placeholder="Your email" autocomplete="email" required>
         <label class="vh" for="f-link">Amazon link to your book</label>
         <input id="f-link" type="url" inputmode="url" placeholder="Amazon link to your book" required>
+        <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
         <button class="btn btn-gold" type="submit">Get my sample <svg aria-hidden="true"><use href="#arrow"/></svg></button>
       </form>
       <p class="form-msg" id="form-msg" role="status" aria-live="polite"></p>
@@ -570,18 +571,30 @@ button,input{font:inherit;color:inherit}
   d.addEventListener('keydown', function(e){ if (e.key === 'Escape') setMenu(false); });
   d.addEventListener('click', function(e){ if (!e.target.closest('.nav')) setMenu(false); });
 
-  /* sample form: opens the visitor's email app with the request filled in */
-  var form = d.getElementById('form'), msg = d.getElementById('form-msg');
+  /* sample form: posts to /api/sample (functions/api/sample.js), which emails the request to us */
+  var form = d.getElementById('form'), msg = d.getElementById('form-msg'), sending = false;
+  var fallback = 'Something went wrong. Please email your link to <b>ashwin@mobiusservices.me</b>.';
   form.addEventListener('submit', function(e){
     e.preventDefault();
+    if (sending) return;
     var email = d.getElementById('f-email').value.trim(), link = d.getElementById('f-link').value.trim();
     msg.classList.add('err');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ msg.textContent = 'Please enter your email address.'; d.getElementById('f-email').focus(); return; }
     if (!/amazon\.|amzn\.|a\.co\//i.test(link)){ msg.textContent = 'Please paste the Amazon link to your book.'; d.getElementById('f-link').focus(); return; }
     msg.classList.remove('err');
-    var body = 'Free sample request\nEmail: ' + email + '\nBook: ' + link;
-    location.href = 'mailto:ashwin@mobiusservices.me?subject=' + encodeURIComponent('Free sample request') + '&body=' + encodeURIComponent(body);
-    msg.innerHTML = 'Your email app should open with the request ready to send. If it doesn’t, email your link to <b>ashwin@mobiusservices.me</b>.';
+    sending = true; msg.textContent = 'Sending…';
+    fetch('api/sample', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, link: link, website: d.getElementById('f-website').value})})
+      .then(function(r){ return r.json().then(function(j){ return {ok: r.ok, result: j.result}; }); })
+      .then(function(res){
+        if (res.ok){ form.reset(); msg.textContent = 'Got it. We’ll email your sample to ' + email + '.'; return; }
+        msg.classList.add('err');
+        if (res.result === 'email') msg.textContent = 'Please enter your email address.';
+        else if (res.result === 'link') msg.textContent = 'Please paste the Amazon link to your book.';
+        else msg.innerHTML = fallback;
+      })
+      .catch(function(){ msg.classList.add('err'); msg.innerHTML = fallback; })
+      .then(function(){ sending = false; });
   });
 
   addEventListener('scroll', function(){ nav.classList.toggle('scrolled', scrollY > 20); }, {passive: true});
