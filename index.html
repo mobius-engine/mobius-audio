@@ -95,6 +95,7 @@ button,input{font:inherit;color:inherit}
 .hero-sub{margin:20px auto 0;max-width:31em;font-size:clamp(16px,1.35vw,19px);color:var(--ink-2)}
 .hero-ctas{display:flex;gap:12px;justify-content:center;margin-top:26px;flex-wrap:wrap}
 .kinds{margin-top:18px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+@media (max-height:700px){.kinds{display:none}}
 .fan{--cw:clamp(100px,min(12.5vw,19vh),210px);position:absolute;left:50%;bottom:calc(2.5vh + var(--cw) * .5);z-index:2;width:0;height:0}
 .cover{position:absolute;left:0;bottom:0;width:var(--cw);aspect-ratio:2/3;margin-left:calc(var(--cw) / -2);border-radius:4px 10px 10px 4px;overflow:hidden;background:var(--night-2);box-shadow:0 30px 50px -22px rgba(20,18,16,.55),0 2px 6px rgba(20,18,16,.15);transform-origin:50% 100%;transform:translate(calc(var(--k) * var(--cw) * .86),calc(var(--yy) * var(--cw))) rotate(calc(var(--k) * 6deg));will-change:transform}
 .cover img{width:100%;height:100%;object-fit:cover}
@@ -104,12 +105,13 @@ button,input{font:inherit;color:inherit}
 .c-genre{white-space:nowrap;font-family:var(--mono);font-size:max(8px,calc(var(--cw) * .045));letter-spacing:.16em;text-transform:uppercase;opacity:.85}
 .c-badge{display:flex;align-items:center;gap:3px;font-family:var(--mono);font-size:max(7px,calc(var(--cw) * .038));letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:3px 6px;border-radius:999px}
 .c-badge svg{width:1.1em;height:1.1em}
+.fan.tiny .c-badge{font-size:0;gap:0;padding:4px}.fan.tiny .c-badge svg{width:10px;height:10px}
 .c-txt{position:absolute;left:10%;right:8%;bottom:8%;z-index:2;color:#fff}
 .c-title{font-family:var(--serif);font-size:calc(var(--cw) * .17);line-height:.95}
 .c-rule{display:block;width:22%;height:1px;background:rgba(255,255,255,.6);margin:calc(var(--cw) * .05) 0}
 .c-by{font-family:var(--mono);font-size:max(8px,calc(var(--cw) * .042));letter-spacing:.16em;text-transform:uppercase;opacity:.8}
 .cover.is-hero{z-index:5}
-.now{position:absolute;left:50%;top:50%;z-index:6;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--paper);opacity:0;pointer-events:none;width:min(90vw,600px);text-align:center}
+.now{position:absolute;left:0;right:0;margin:0 auto;top:0;z-index:6;display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--paper);opacity:0;pointer-events:none;width:min(90vw,600px);text-align:center}
 .now .eyebrow{color:var(--gold-2)}
 .now h2{font-size:clamp(32px,4.4vw,60px);line-height:1}
 .bars{display:flex;align-items:center;gap:4px;height:40px}
@@ -624,6 +626,16 @@ button,input{font:inherit;color:inherit}
   function fanX(el){ return (+el.dataset.s) * (+el.dataset.o) * cw() * 0.86; }
   function fanY(el){ var o = +el.dataset.o; return o * o * cw() * 0.035 - (o === 0 ? cw() * 0.12 : 0); }
   function fanR(el){ return (+el.dataset.s) * (+el.dataset.o) * 6; }
+  /* the fan is sized to the room under the copy, so the books never cover the buttons or the genre line.
+     The centre book's top edge sits at hero height - 2.5vh - 2.12 * cw. */
+  var heroEl = d.querySelector('.hero'), fanEl = d.querySelector('.fan'), copyEl = d.querySelector('.hero-copy'), nowEl = d.querySelector('.now');
+  function fitFan(){
+    fanEl.style.removeProperty('--cw');
+    var room = (heroEl.clientHeight - innerHeight * 0.025 - copyEl.offsetHeight - 20) / 2.12;
+    if (room < cw()) fanEl.style.setProperty('--cw', Math.max(72, room) + 'px');
+    fanEl.classList.toggle('tiny', cw() < 130);   // too narrow for the "Audio" label: icon only
+  }
+  fitFan();
   gsap.set(covers, {x: function(i, el){ return fanX(el); }, y: function(i, el){ return fanY(el) + innerHeight * 0.6; }, rotation: function(i, el){ return fanR(el) * 2.5; }, opacity: 0});
   var intro = gsap.timeline({defaults: {ease: 'expo.out'}});
   intro.from('.hero h1 .ln > span', {yPercent: 110, duration: 1.4, stagger: 0.12})
@@ -631,16 +643,31 @@ button,input{font:inherit;color:inherit}
        .to(covers, {y: function(i, el){ return fanY(el); }, rotation: function(i, el){ return fanR(el); }, opacity: 1, duration: 1.6, stagger: {each: 0.07, from: 'edges'}}, 0.25);
 
   /* hero: scroll scene. The fan opens, the centre book rises into a spotlight, the room goes dark. */
-  function heroScale(){ return Math.min(1.8, innerHeight * 0.5 / (cw() * 1.5)); }
-  function heroY(){ var B = innerHeight * 0.025 + cw() * 0.5; return 0.75 * cw() * heroScale() - innerHeight * 0.62 + B; }
-  function nowY(){ return innerHeight * 0.2 + 70; }
+  /* End state: the spotlit book with the "Now playing" block under it, the pair centred below the nav and
+     measured so the heading is always fully on screen. */
+  function endLayout(){
+    var H = heroEl.clientHeight, navH = nav.offsetHeight, pad = Math.max(32, H * 0.05), gap = 28, edge = 16,
+        tb = nowEl.offsetHeight, w = cw(),
+        scale = Math.max(0.7, Math.min(1.8, (H - navH - pad - edge - gap - tb) / (1.5 * w))),
+        hc = scale * 1.5 * w,
+        bottom = navH + Math.max(edge, (H - navH - pad - hc - gap - tb) / 2) + hc;   // the book scales from its bottom edge
+    return {scale: scale, y: bottom - fanEl.offsetTop, now: bottom + gap};
+  }
+  function heroScale(){ return endLayout().scale; }
+  function heroY(){ return endLayout().y; }
+  function nowY(){ return endLayout().now; }
   gsap.set('.now', {y: function(){ return nowY() + 40; }});
   var scene = gsap.timeline({
-    scrollTrigger: {trigger: '.hero', start: 'top top', end: '+=130%', scrub: 0.8, pin: true, anticipatePin: 1, invalidateOnRefresh: true,
-      onUpdate: function(s){ nav.classList.toggle('dark', s.progress > 0.3 && s.progress < 0.995); }}
+    scrollTrigger: {trigger: '.hero', start: 'top top', end: '+=130%', scrub: 0.8, pin: true, anticipatePin: 1, invalidateOnRefresh: true}
   });
+  /* the menu stays dark while any of the dark scene is still under it, including while it scrolls away */
+  function navTone(){ nav.classList.toggle('dark', scene.scrollTrigger.progress > 0.3 && heroEl.getBoundingClientRect().bottom > nav.offsetHeight); }
+  addEventListener('scroll', navTone, {passive: true});
+  navTone();
   scene.to('.hero-copy', {y: -120, opacity: 0, ease: 'none', duration: 0.35}, 0)
-       .to('.cover:not(.is-hero)', {x: function(i, el){ return fanX(el) * 2.6; }, y: function(i, el){ return fanY(el) + cw() * 0.6; }, rotation: function(i, el){ return fanR(el) * 2.2; }, opacity: 0, ease: 'power2.in', duration: 0.5}, 0)
+       /* fromTo, not to: the side books must return to the fan, not to the hidden state they start the page in */
+       .fromTo('.cover:not(.is-hero)', {x: function(i, el){ return fanX(el); }, y: function(i, el){ return fanY(el); }, rotation: function(i, el){ return fanR(el); }, opacity: 1, immediateRender: false},
+               {x: function(i, el){ return fanX(el) * 2.6; }, y: function(i, el){ return fanY(el) + cw() * 0.6; }, rotation: function(i, el){ return fanR(el) * 2.2; }, opacity: 0, ease: 'power2.in', duration: 0.5, immediateRender: false}, 0)
        .to('.hero-bg', {backgroundColor: '#0d0b09', ease: 'none', duration: 0.4}, 0.1)
        .to('.hero-glow', {opacity: 1, ease: 'none', duration: 0.4}, 0.25)
        .to('.cover.is-hero', {y: heroY, scale: heroScale, ease: 'power2.inOut', duration: 0.65}, 0.05)
@@ -693,8 +720,14 @@ button,input{font:inherit;color:inherit}
   gsap.fromTo('.cta > img', {scale: 1.25}, {scale: 1.02, ease: 'none', scrollTrigger: {trigger: '.cta', start: 'top bottom', end: 'bottom top', scrub: true}});
   gsap.from('.cta .sub, .form', {y: 30, opacity: 0, stagger: 0.12, duration: 1.2, ease: 'expo.out', scrollTrigger: {trigger: '.cta', start: 'top 60%'}});
 
-  addEventListener('load', function(){ ScrollTrigger.refresh(); });
-  if (d.fonts && d.fonts.ready) d.fonts.ready.then(function(){ ScrollTrigger.refresh(); });
+  function refit(){
+    fitFan();
+    if (scrollY < 4) gsap.set(covers, {x: function(i, el){ return fanX(el); }});   // before the scene has taken over x
+    ScrollTrigger.refresh();
+  }
+  var rz; addEventListener('resize', function(){ clearTimeout(rz); rz = setTimeout(refit, 120); });
+  addEventListener('load', refit);
+  if (d.fonts && d.fonts.ready) d.fonts.ready.then(refit);
 })();
 </script>
 </body>
