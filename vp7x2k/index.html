@@ -66,6 +66,10 @@ header{display:flex;align-items:center;height:72px;margin-top:env(safe-area-inse
 .note{padding:0 0 64px;color:rgba(255,255,255,.45);font-size:14px}
 .note b{font-weight:500;color:rgba(255,255,255,.7)}
 
+.foot{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;padding:26px 0 40px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(255,255,255,.45)}
+.foot .brand{font-family:var(--serif);font-size:20px;letter-spacing:-.01em;color:rgba(255,255,255,.85);margin-right:auto}
+.foot a{color:rgba(255,255,255,.6);transition:color .2s}
+.foot a:hover{color:var(--gold-2)}
 @media (max-width:560px){
   .card{padding:18px;gap:16px}
   .play{width:58px;height:58px}
@@ -117,6 +121,11 @@ header{display:flex;align-items:center;height:72px;margin-top:env(safe-area-inse
   </section>
 
   <p class="note">The text is the opening of <b>Pride and Prejudice</b> by Jane Austen, a public domain book, so you can judge the voices. It is not your book.</p>
+  <footer class="foot">
+    <span class="brand">Mobius Audio</span>
+    <a href="https://audiobooks.mobiusservices.me/">audiobooks.mobiusservices.me</a>
+    <a href="mailto:ashwin@mobiusservices.me">ashwin@mobiusservices.me</a>
+  </footer>
 </div>
 
 <script>
