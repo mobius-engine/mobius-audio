@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mobius Audio · Listen to two samples</title>
+<meta name="description" content="Two sample narrations from Mobius Audio. Press play.">
+<meta name="theme-color" content="#0d0b09">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23141210'/%3E%3Cpath d='M32 32c-5-8-9.5-11-15-11-5 0-8 4.6-8 11s3 11 8 11c5.5 0 10-3 15-11s9.5-11 15-11c5 0 8 4.6 8 11s-3 11-8 11c-5.5 0-10-3-15-11' fill='none' stroke='%23f3c878' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#ffffff; --ink:#141210; --ink-3:#8d867d;
+  --night:#0d0b09; --night-2:#1a1612;
+  --gold:#c9862f; --gold-2:#f3c878; --glow:rgba(243,200,120,.5);
+  --line:rgba(255,255,255,.1);
+  --serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
+  --sans:"Geist","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--night);color:var(--paper);font-family:var(--sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(900px 500px at 50% -10%,rgba(243,200,120,.10),transparent 70%)}
+h1,h2{font-family:var(--serif);font-weight:400;margin:0;letter-spacing:-.015em;line-height:1;text-wrap:balance}
+p{margin:0}
+button{font:inherit;color:inherit}
+::selection{background:var(--gold-2);color:var(--ink)}
+:focus-visible{outline:2px solid var(--gold-2);outline-offset:3px;border-radius:6px}
+.wrap{max-width:880px;margin-inline:auto;padding:0 max(20px,env(safe-area-inset-left,0px))}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+
+header{display:flex;align-items:center;height:72px;margin-top:env(safe-area-inset-top,0px)}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:24px;letter-spacing:-.01em}
+.logo svg{width:30px;height:18px}
+
+.hero{padding:56px 0 36px}
+.hero h1{font-size:clamp(44px,8vw,76px);margin:14px 0 18px}
+.hero h1 em{color:var(--gold-2)}
+.hero p{max-width:540px;color:rgba(255,255,255,.65);font-size:18px}
+
+.hero .custom{margin-top:22px;padding-left:16px;border-left:2px solid var(--gold-2);color:rgba(255,255,255,.7);font-size:17px}
+.hero .custom strong{display:block;margin-bottom:2px;font-family:var(--serif);font-weight:400;font-size:26px;letter-spacing:-.01em;color:var(--gold-2)}
+.cards{display:grid;gap:18px;padding-bottom:56px}
+.card{display:flex;align-items:center;gap:22px;padding:22px 24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));transition:border-color .3s,box-shadow .3s}
+.card.playing{border-color:rgba(243,200,120,.55);box-shadow:0 0 0 1px rgba(243,200,120,.18),0 24px 60px -30px var(--glow)}
+.play{flex:none;width:68px;height:68px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:transparent;display:grid;place-items:center;cursor:pointer;transition:transform .3s var(--ease),background .3s,border-color .3s}
+.play:hover{transform:scale(1.05);border-color:var(--gold-2)}
+.card.playing .play{background:var(--gold-2);border-color:var(--gold-2);color:var(--ink)}
+.play svg{width:22px;height:22px}
+.play .i-pause{display:none}
+.card.playing .i-play{display:none}
+.card.playing .i-pause{display:block}
+.body{flex:1;min-width:0}
+.body h2{font-size:30px;margin:0 0 14px}
+.bar{position:relative;height:4px;border-radius:4px;background:rgba(255,255,255,.14);cursor:pointer}
+.bar::before{content:"";position:absolute;inset:-10px 0}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:var(--gold-2)}
+.fill::after{content:"";position:absolute;right:-5px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--gold-2);box-shadow:0 0 12px var(--glow)}
+.time{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(255,255,255,.45)}
+
+.note{padding:0 0 64px;color:rgba(255,255,255,.45);font-size:14px}
+.note b{font-weight:500;color:rgba(255,255,255,.7)}
+
+@media (max-width:560px){
+  .card{padding:18px;gap:16px}
+  .play{width:58px;height:58px}
+  .body h2{font-size:26px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 64 36" aria-hidden="true"><path d="M32 18c-5-8-9.5-11-15-11-5 0-8 4.6-8 11s3 11 8 11c5.5 0 10-3 15-11s9.5-11 15-11c5 0 8 4.6 8 11s-3 11-8 11c-5.5 0-10-3-15-11" fill="none" stroke="#f3c878" stroke-width="4" stroke-linecap="round"/></svg>
+      Mobius Audio
+    </div>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow">Two sample narrations</p>
+    <h1>Hear how your book <em>could sound.</em></h1>
+    <p>Press play on either sample.</p>
+    <p class="custom"><strong>Everything is customisable.</strong> From the voice and the narration style to the music and sound effects, we shape it to fit your book.</p>
+  </section>
+
+  <section class="cards" aria-label="Samples">
+    <article class="card" data-src="sample-1-woman.m4a">
+      <button class="play" type="button" aria-label="Play sample 1">
+        <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>
+      </button>
+      <div class="body">
+        <h2>Sample 1</h2>
+        <div class="bar" role="slider" aria-label="Seek sample 1" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill"></div></div>
+        <div class="time"><span class="cur">0:00</span><span class="dur">0:52</span></div>
+      </div>
+    </article>
+
+    <article class="card" data-src="sample-2-man.m4a">
+      <button class="play" type="button" aria-label="Play sample 2">
+        <svg class="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>
+      </button>
+      <div class="body">
+        <h2>Sample 2</h2>
+        <div class="bar" role="slider" aria-label="Seek sample 2" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill"></div></div>
+        <div class="time"><span class="cur">0:00</span><span class="dur">0:55</span></div>
+      </div>
+    </article>
+  </section>
+
+  <p class="note">The text is the opening of <b>Pride and Prejudice</b> by Jane Austen, a public domain book, so you can judge the voices. It is not your book.</p>
+</div>
+
+<script>
+(function(){
+  var cards=[].slice.call(document.querySelectorAll('.card'));
+  var fmt=function(s){s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+  cards.forEach(function(card){
+    var a=new Audio(card.dataset.src); a.preload='metadata';
+    var btn=card.querySelector('.play'), bar=card.querySelector('.bar'), fill=card.querySelector('.fill'),
+        cur=card.querySelector('.cur'), dur=card.querySelector('.dur');
+    card._audio=a;
+    a.addEventListener('loadedmetadata',function(){dur.textContent=fmt(a.duration)});
+    a.addEventListener('timeupdate',function(){
+      var p=a.duration?a.currentTime/a.duration*100:0;
+      fill.style.width=p+'%'; cur.textContent=fmt(a.currentTime); bar.setAttribute('aria-valuenow',Math.round(p));
+    });
+    a.addEventListener('ended',function(){card.classList.remove('playing');fill.style.width='0';cur.textContent='0:00';a.currentTime=0});
+    a.addEventListener('pause',function(){card.classList.remove('playing')});
+    a.addEventListener('play',function(){card.classList.add('playing')});
+    btn.addEventListener('click',function(){
+      if(a.paused){cards.forEach(function(c){if(c!==card)c._audio.pause()});a.play()}else{a.pause()}
+    });
+    function seek(x){var r=bar.getBoundingClientRect();if(a.duration)a.currentTime=Math.min(1,Math.max(0,(x-r.left)/r.width))*a.duration}
+    bar.addEventListener('click',function(e){seek(e.clientX)});
+    bar.addEventListener('keydown',function(e){
+      if(e.key==='ArrowRight')a.currentTime=Math.min(a.duration||0,a.currentTime+5);
+      if(e.key==='ArrowLeft')a.currentTime=Math.max(0,a.currentTime-5);
+    });
+  });
+})();
+</script>
+</body>
+</html>
